@@ -80,45 +80,56 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view){
 
                 DecimalFormat df = new DecimalFormat("0.00");
-                et_Amount.setText(df.format(Double.parseDouble(et_Amount.getText().toString())));
+                try {
+                    amount = et_Amount.getText().toString();
+                    if(amount.equals("") || Double.parseDouble(amount) <= 0.5){
+                        Toast.makeText(getApplicationContext(), "Amount must be greater than or equal to 0.5", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        et_Amount.setText(df.format(Double.parseDouble(amount)));
 
-                amount = et_Amount.getText().toString().replace(".", "");
+                        amount = et_Amount.getText().toString().replace(".", "");
 
-                currency = spn_Currency.getSelectedItem().toString().toLowerCase();
+                        currency = spn_Currency.getSelectedItem().toString().toLowerCase();
 
-                Toast.makeText(getApplicationContext(), amount + " " + currency, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), amount + " " + currency, Toast.LENGTH_LONG).show();
 
-                // region Request
-                StringRequest stringRequest = new StringRequest(Request.Method.POST,
-                        "https://api.stripe.com/v1/customers",
-                        new Response.Listener<String>(){
-                            @Override
-                            public void onResponse(String response) {
-                                try {
-                                    JSONObject json_data = new JSONObject(response);
-                                    customerID = json_data.getString("id");
-                                    Toast.makeText(getApplicationContext(), "Customer ID - " + customerID, Toast.LENGTH_SHORT).show();
-                                    getEphemeralKey(customerID);
+                        // region Request
+                        StringRequest stringRequest = new StringRequest(Request.Method.POST,
+                                "https://api.stripe.com/v1/customers",
+                                new Response.Listener<String>() {
+                                    @Override
+                                    public void onResponse(String response) {
+                                        try {
+                                            JSONObject json_data = new JSONObject(response);
+                                            customerID = json_data.getString("id");
+                                            Toast.makeText(getApplicationContext(), "Customer ID - " + customerID, Toast.LENGTH_SHORT).show();
+                                            getEphemeralKey(customerID);
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }, new Response.ErrorListener() {
+                            public void onErrorResponse(VolleyError error) {
+
                             }
-                        }, new Response.ErrorListener(){
-                    public void onErrorResponse(VolleyError error){
+                        }) {
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                Map<String, String> headers = new HashMap<>();
+                                headers.put("Authorization", "Bearer " + STRIPE_SECRET_KEY);
+                                return headers;
+                            }
+                        };
+                        // endregion
+                        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+                        requestQueue.add(stringRequest);
+                    }
+                }
+                catch (Exception e){
 
-                    }
-                }){
-                    @Override
-                    public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String, String> headers = new HashMap<>();
-                        headers.put("Authorization", "Bearer " + STRIPE_SECRET_KEY);
-                        return headers;
-                    }
-                };
-                // endregion
-                RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-                requestQueue.add(stringRequest);
+                }
             }
         });
 
