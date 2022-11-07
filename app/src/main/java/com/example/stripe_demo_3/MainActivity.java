@@ -1,14 +1,213 @@
 package com.example.stripe_demo_3;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.stripe.android.PaymentConfiguration;
+import com.stripe.android.paymentsheet.PaymentSheet;
+import com.stripe.android.paymentsheet.PaymentSheetResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQUEST_CODE_LOCATION = 1;
+
+    private final String STRIPE_PUBLISH_KEY = "pk_test_51LyMLEDtE9pecSduXidyxz8VmYo1tVrxGdXWWErlmCcdwoQQrlnwH4GWt2m9Ik65tIbwn4LT5JwXYS4ZDiOVt0Ix0011BDdnqG";
+    private final String STRIPE_SECRET_KEY = "sk_test_51LyMLEDtE9pecSduWmaMpOdYbAThjy4Y3zcnwNWXTV1A06pqvzcsuWM44khZtXHUvQAseIgwPH9v6jNk5FAb8oU500iAKNPiwp";
+    PaymentSheet paymentSheet;
+
+    private String customerID;
+    private String ephemeralKey;
+    private String clientSecret;
+
+    private Button btn_StartFlow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        btn_StartFlow = findViewById(R.id.btn_PaymenttFlow);
+
+        // Stripe Initial Configuration
+        PaymentConfiguration.init(this, STRIPE_PUBLISH_KEY);
+        paymentSheet = new PaymentSheet(this, paymentSheetResult -> {
+            onPaymentResult(paymentSheetResult);
+        });
+
+        btn_StartFlow.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                PaymentFlow();
+            }
+        });
+
+        // Create Customer
+        StringRequest stringRequest = new StringRequest(Request.Method.POST,
+                "https://api.stripe.com/v1/customers",
+                new Response.Listener<String>(){
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject json_data = new JSONObject(response);
+                            customerID = json_data.getString("id");
+                            Toast.makeText(getApplicationContext(), "Customer ID - " + customerID, Toast.LENGTH_SHORT).show();
+                            getEphemeralKey(customerID);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener(){
+            public void onErrorResponse(VolleyError error){
+
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + STRIPE_SECRET_KEY);
+                return headers;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        requestQueue.add(stringRequest);
+
+    }
+
+    private void onPaymentResult(PaymentSheetResult paymentSheetResult) {
+        if(paymentSheetResult instanceof PaymentSheetResult.Completed){
+            Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void getEphemeralKey(String customerID) {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST,
+                "https://api.stripe.com/v1/ephemeral_keys",
+                new Response.Listener<String>(){
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject json_data = new JSONObject(response);
+                            ephemeralKey = json_data.getString("id");
+                            Toast.makeText(getApplicationContext(), "Ephemeral Key - " + ephemeralKey, Toast.LENGTH_SHORT).show();
+
+                            getClientSecret(customerID, ephemeralKey);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener(){
+            public void onErrorResponse(VolleyError error){
+                Log.d("Volley Error", error.toString());
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + STRIPE_SECRET_KEY);
+                headers.put("Stripe-Version", "2022-08-01");
+                return headers;
+            }
+
+            @NonNull
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", customerID);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void getClientSecret(String customerID, String ephemeralKey) {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST,
+                "https://api.stripe.com/v1/payment_intents",
+                new Response.Listener<String>(){
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject json_data = new JSONObject(response);
+                            clientSecret = json_data.getString("client_secret");
+                            Toast.makeText(getApplicationContext(), "Client Secret - " + clientSecret, Toast.LENGTH_SHORT).show();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener(){
+            public void onErrorResponse(VolleyError error){
+                Log.d("Volley Error", error.toString());
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + STRIPE_SECRET_KEY);
+                return headers;
+            }
+
+            @NonNull
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", customerID);
+                params.put("amount", "1099");
+                params.put("currency", "cad");
+                params.put("automatic_payment_methods[enabled]", "true");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        requestQueue.add(stringRequest);
+    }
+
+    private void PaymentFlow() {
+        paymentSheet.presentWithPaymentIntent(clientSecret, new PaymentSheet.Configuration(
+                    "Stripe Demo",
+                    new PaymentSheet.CustomerConfiguration(
+                            customerID,
+                            ephemeralKey
+                    )
+                ));
+    }
+
+    /**
+     * Ensures that the fine-location user permission is enabled
+     */
+    public void checkFineLocation(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
+            // REQUEST_CODE_LOCATION should be defined on your app level
+            ActivityCompat.requestPermissions(MainActivity.this, permissions, REQUEST_CODE_LOCATION);
+        }
     }
 }
