@@ -13,7 +13,47 @@
         android:text="Start Payment Flow"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.559" />
+        app:layout_constraintTop_toBottomOf="@+id/et_Amount" />
+
+    <EditText
+        android:id="@+id/et_Amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        app:layout_constraintBottom_toTopOf="@+id/btn_PaymenttFlow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/spn_Currency"
+        android:layout_width="205dp"
+        android:layout_height="27dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_PaymenttFlow"
+        app:layout_constraintEnd_toEndOf="@+id/et_Amount"
+        app:layout_constraintStart_toStartOf="@+id/et_Amount"
+        app:layout_constraintTop_toBottomOf="@+id/et_Amount"
+        app:layout_constraintVertical_bias="0.508" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Amount"
+        app:layout_constraintBottom_toTopOf="@+id/et_Amount"
+        app:layout_constraintStart_toStartOf="@+id/et_Amount" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Currency"
+        app:layout_constraintBottom_toTopOf="@+id/spn_Currency"
+        app:layout_constraintStart_toStartOf="@+id/spn_Currency" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

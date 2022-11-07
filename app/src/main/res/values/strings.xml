@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">Stripe_Demo_3</string>
+    <string name="app_name">Stripe_Demo_3</string>\
+    <string-array name="currency_codes">
+        <item>CAD</item>
+        <item>USD</item>
+        <item>EUR</item>
+        <item>YEN</item>
+        <item>JMD</item>
+        <item>CUP</item>
+        <item>MXN</item>
+        <item>GBP</item>
+    </string-array>
 </resources>
