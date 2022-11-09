@@ -4,10 +4,12 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Docs/School/Red River College/Term 5 2022/Mobile App Dev/Stripe_Demo_3/app/src/main/res/layout/activity_main.xml" value="0.4" />
+        <entry key="..\:/Users/mrmat/Documents/College/Mobile App Dev/Stripe_Demo_3/app/src/main/res/layout/activity_store_front.xml" value="0.25" />
+        <entry key="..\:/Users/mrmat/Documents/College/Mobile App Dev/Stripe_Demo_3/app/src/main/res/layout/store_front_row.xml" value="0.264" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_X" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
