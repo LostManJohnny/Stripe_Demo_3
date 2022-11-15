@@ -1,8 +1,6 @@
 package com.example.stripe_demo_3;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,8 +12,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -36,8 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int REQUEST_CODE_LOCATION = 1;
 
     private final String STRIPE_PUBLISH_KEY = "pk_test_51LyMLEDtE9pecSduXidyxz8VmYo1tVrxGdXWWErlmCcdwoQQrlnwH4GWt2m9Ik65tIbwn4LT5JwXYS4ZDiOVt0Ix0011BDdnqG";
     private final String STRIPE_SECRET_KEY = "sk_test_51LyMLEDtE9pecSduWmaMpOdYbAThjy4Y3zcnwNWXTV1A06pqvzcsuWM44khZtXHUvQAseIgwPH9v6jNk5FAb8oU500iAKNPiwp";
@@ -65,9 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Stripe Initial Configuration
         PaymentConfiguration.init(this, STRIPE_PUBLISH_KEY);
-        paymentSheet = new PaymentSheet(this, paymentSheetResult -> {
-            onPaymentResult(paymentSheetResult);
-        });
+        paymentSheet = new PaymentSheet(this, this::onPaymentResult);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.currency_codes, android.R.layout.simple_spinner_item);
@@ -97,24 +89,20 @@ public class MainActivity extends AppCompatActivity {
                         // region Request
                         StringRequest stringRequest = new StringRequest(Request.Method.POST,
                                 "https://api.stripe.com/v1/customers",
-                                new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        try {
-                                            JSONObject json_data = new JSONObject(response);
-                                            customerID = json_data.getString("id");
-                                            Toast.makeText(getApplicationContext(), "Customer ID - " + customerID, Toast.LENGTH_SHORT).show();
-                                            getEphemeralKey(customerID);
+                                response -> {
+                                    try {
+                                        JSONObject json_data = new JSONObject(response);
+                                        customerID = json_data.getString("id");
+                                        Toast.makeText(getApplicationContext(), "Customer ID - " + customerID, Toast.LENGTH_SHORT).show();
+                                        getEphemeralKey(customerID);
 
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
-                                }, new Response.ErrorListener() {
-                            public void onErrorResponse(VolleyError error) {
+                                },
+                                error -> {
 
-                            }
-                        }) {
+                                }) {
                             @Override
                             public Map<String, String> getHeaders() throws AuthFailureError {
                                 Map<String, String> headers = new HashMap<>();
@@ -235,17 +223,5 @@ public class MainActivity extends AppCompatActivity {
                             ephemeralKey
                     )
                 ));
-    }
-
-    /**
-     * Ensures that the fine-location user permission is enabled
-     */
-    public void checkFineLocation(){
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-            // REQUEST_CODE_LOCATION should be defined on your app level
-            ActivityCompat.requestPermissions(MainActivity.this, permissions, REQUEST_CODE_LOCATION);
-        }
     }
 }
